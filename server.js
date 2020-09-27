@@ -27,21 +27,21 @@ var getAll = {};
 
 let collectionName = 'mycollection'; // MongoDB requires a collection name.
 
-app.post("/api/visitors", async function (request, response) {
+app.post("/api/visitors", function (request, response) {
   var userName = request.body.name;
-  var f = await fsPromises.open('db.txt', 'a');
-  await fsPromise.write(f, userName+'\n');
-  fsPromises.close(f);
-  response.send(JSON.stringify(request));
+  var f = fs.openSync('db.txt', 'a');
+  fs.writeSync(f, userName+'\n');
+  fs.closeSync(f);
+  response.send(JSON.stringify(request.body));
 });
 
-app.get("/api/visitors", async function (request, response) {
+app.get("/api/visitors", function (request, response) {
   //var names = [];
   //if(!mydb) {
   //  response.json(names);
   //  return;
   //}
-  response.send(await fsPromise.readFile('db.txt'));
+  response.send(fs.readFileSync('db.txt'));
 });
 
 app.get("/3", async function (request, response) {
