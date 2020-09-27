@@ -44,11 +44,20 @@ app.get("/api/visitors", async function (request, response) {
   response.send(await fsPromise.readFile('db.txt'));
 });
 
-app.get("/", function (request, response) {
+app.get("/3", async function (request, response) {
+  //var names = [];
+  //if(!mydb) {
+  //  response.json(names);
+  //  return;
+  //}
+  response.send('LOL');
+});
+
+app.get("/2", function (request, response) {
   response.json(request);
 });
 
-app.post("/", function (request, response) {
+app.post("/2", function (request, response) {
   response.json(request);
 });
 
