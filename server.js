@@ -2,6 +2,8 @@ var express = require("express");
 var app = express();
 var cfenv = require("cfenv");
 var bodyParser = require('body-parser')
+var fs = require('fs')
+var fsPromises = fs.promises
 
 // parse application/x-www-form-urlencoded
 app.use(bodyParser.urlencoded({ extended: false }))
@@ -23,93 +25,23 @@ var dbName = 'mydb';
 var insertOne = {};
 var getAll = {};
 
-insertOne.cloudant = function(doc, response) {
-  mydb.insert(doc, function(err, body, header) {
-    if (err) {
-      console.log('[mydb.insert] ', err.message);
-      response.send("Error");
-      return;
-    }
-    doc._id = body.id;
-    response.send(doc);
-  });
-}
-
-getAll.cloudant = function(response) {
-  var names = [];  
-  mydb.list({ include_docs: true }, function(err, body) {
-    if (!err) {
-      body.rows.forEach(function(row) {
-        if(row.doc.name)
-          names.push(row.doc.name);
-      });
-      response.json(names);
-    }
-  });
-  //return names;
-}
-
 let collectionName = 'mycollection'; // MongoDB requires a collection name.
 
-insertOne.mongodb = function(doc, response) {
-  mydb.collection(collectionName).insertOne(doc, function(err, body, header) {
-    if (err) {
-      console.log('[mydb.insertOne] ', err.message);
-      response.send("Error");
-      return;
-    }
-    doc._id = body.id;
-    response.send(doc);
-  });
-}
-
-getAll.mongodb = function(response) {
-  var names = [];
-  mydb.collection(collectionName).find({}, {fields:{_id: 0, count: 0}}).toArray(function(err, result) {
-    if (!err) {
-      result.forEach(function(row) {
-        names.push(row.name);
-      });
-      response.json(names);
-    }
-  });
-}
-
-/* Endpoint to greet and add a new visitor to database.
-* Send a POST request to localhost:3000/api/visitors with body
-* {
-*   "name": "Bob"
-* }
-*/
-app.post("/api/visitors", function (request, response) {
+app.post("/api/visitors", async function (request, response) {
   var userName = request.body.name;
-  var doc = { "name" : userName };
-  if(!mydb) {
-    console.log("No database.");
-    response.send(doc);
-    return;
-  }
-  insertOne[vendor](doc, response);
+  var f = await fsPromises.open('db.txt', 'a');
+  await fsPromise.write(f, userName+'\n');
+  fsPromises.close(f);
+  response.send(JSON.stringify(request));
 });
 
-/**
- * Endpoint to get a JSON array of all the visitors in the database
- * REST API example:
- * <code>
- * GET http://localhost:3000/api/visitors
- * </code>
- *
- * Response:
- * [ "Bob", "Jane" ]
- * @return An array of all the visitor names
- */
-app.get("/api/visitors", function (request, response) {
-  var names = [];
-  if(!mydb) {
-    response.json(names);
-    return;
-  }
-  getAll[vendor](response);
+app.get("/api/visitors", async function (request, response) {
+  //var names = [];
+  //if(!mydb) {
+  //  response.json(names);
+  //  return;
+  //}
+  response.send(await fsPromise.readFile('db.txt'));
 });
 
 app.get("/", function (request, response) {
